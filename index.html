@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="bn" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Noob Topup — Push Notification Master Console</title>
+  <meta name="description" content="Dedicated Push Notification & Broadcast Admin Panel for Noob Topup Android App. Send instant offers, diamond deals, and alerts to all app users.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #080c14;
+      --bg-card: #0f172a;
+      --bg-card-hover: #172033;
+      --bg-sidebar: #0a0f1d;
+      --bg-input: #1e293b;
+      --border-color: #1e293b;
+      --border-light: #334155;
+      --border-glow: rgba(20, 130, 255, 0.35);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+
+      --primary: #1482ff;
+      --primary-hover: #0c6bd6;
+      --primary-glow: rgba(20, 130, 255, 0.4);
+      --primary-light: rgba(20, 130, 255, 0.15);
+
+      --cyan: #00d2ff;
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.15);
+      --danger: #ef4444;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 20px var(--primary-glow);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Glow Background */
+    .bg-glow-orb {
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.15;
+    }
+    .orb-1 { top: -100px; left: -100px; background: var(--primary); }
+    .orb-2 { bottom: -150px; right: -100px; background: var(--cyan); }
+
+    /* Top Navigation Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 15, 29, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1482ff, #00d2ff);
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .brand-logo-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #ffffff;
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(20, 130, 255, 0.3);
+      margin-left: 8px;
+      vertical-align: middle;
+      -webkit-text-fill-color: initial;
+    }
+
+    .brand-tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      outline: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1482ff, #0c6bd6);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2b92ff, #1482ff);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: #27354a;
+      border-color: var(--border-light);
+    }
+
+    /* Main Content Layout */
+    main {
+      flex: 1;
+      max-width: 1380px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Metric Cards Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition);
+    }
+    .metric-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 8px;
+    }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--success);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Workspace Columns */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 992px) {
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Preset Offers */
+    .preset-container {
+      margin-bottom: 20px;
+    }
+    .preset-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .preset-chip {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preset-chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 8px;
+    }
+
+    .form-label .req {
+      color: var(--danger);
+      margin-left: 4px;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 14px;
+      transition: var(--transition);
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .emoji-bar {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .emoji-btn {
+      background: #1a2333;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .emoji-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      transform: scale(1.15);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Live Phone Preview Simulation */
+    .preview-phone-card {
+      position: sticky;
+      top: 90px;
+    }
+
+    .phone-mockup {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      background: #020617;
+      border-radius: 36px;
+      border: 8px solid #1e293b;
+      padding: 16px 14px 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(20, 130, 255, 0.2);
+      position: relative;
+    }
+
+    .phone-notch {
+      width: 100px;
+      height: 18px;
+      background: #1e293b;
+      border-radius: 0 0 12px 12px;
+      margin: -16px auto 14px;
+    }
+
+    .phone-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      padding: 0 6px 12px;
+    }
+
+    /* Android Notification Card */
+    .notif-card {
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      animation: notif-slide-down 0.4s ease-out;
+      transition: var(--transition);
+    }
+
+    @keyframes notif-slide-down {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .notif-app-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-app-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 1px;
+    }
+
+    .notif-app-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .notif-time {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .notif-content {
+      padding-left: 2px;
+    }
+
+    .notif-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .notif-body {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .notif-image-preview {
+      width: 100%;
+      height: 150px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 10px;
+      display: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .notif-actions {
+      display: flex;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .notif-action-btn {
+      flex: 1;
+      background: rgba(20, 130, 255, 0.2);
+      border: 1px solid rgba(20, 130, 255, 0.4);
+      color: #60a5fa;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    /* History Table */
+    .history-card {
+      margin-top: 24px;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: #e2e8f0;
+    }
+
+    tr:hover td {
+      background: rgba(30, 41, 59, 0.5);
+    }
+
+    .badge-success {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--success-light);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Settings Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 580px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      animation: modal-pop 0.25s ease-out;
+    }
+
+    @keyframes modal-pop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: rgba(10, 15, 29, 0.5);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .close-btn:hover {
+      color: var(--text-main);
+    }
+
+    .info-box {
+      background: rgba(20, 130, 255, 0.08);
+      border: 1px solid rgba(20, 130, 255, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #93c5fd;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      background: #1e293b;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: toast-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow -->
+  <div class="bg-glow-orb orb-1"></div>
+  <div class="bg-glow-orb orb-2"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-container">
+      <div class="brand-logo-wrap">
+        <img src="./ic_launcher.png" alt="Noob Topup" class="brand-logo-img" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <div class="brand-title">
+          Noob Topup <span class="brand-badge">ADMIN</span>
+        </div>
+        <div class="brand-tagline">Push Notification & Flash Offer Broadcast System</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span>ব্রডকাস্ট সিস্টেম প্রস্তুত</span>
+      </div>
+      <button class="btn btn-secondary" onclick="openSettingsModal()">
+        ⚙️ এপিআই সেটিংস
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Top Summary Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">
+          <span>মোট ব্রডকাস্ট ক্যাম্পেইন</span>
+          <span>📢</span>
+        </div>
+        <div class="metric-value" id="stat-total-campaigns">14</div>
+        <div class="metric-sub">✓ সকল ক্যাম্পেইন সফলভাবে প্রেরিত</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">
+          <span>টার্গেট অ্যান্ড্রয়েড অডিয়েন্স</span>
+          <span>📱</span>
+        </div>
+        <div class="metric-value">সকল ইনস্টল ইউজার</div>
+        <div class="metric-sub">✓ গ্লোবাল ব্রডকাস্ট মোড এক্টিভ</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">
+          <span>ডেলিভারি রেট (Delivery Rate)</span>
+          <span>⚡</span>
+        </div>
+        <div class="metric-value">99.8%</div>
+        <div class="metric-sub">✓ ইনস্ট্যান্ট ০.৫ সেকেন্ডে পৌঁছায়</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">
+          <span>কানেক্টেড অ্যাপ</span>
+          <span>💎</span>
+        </div>
+        <div class="metric-value" style="font-size: 18px; margin-top: 12px; color: #60a5fa;">com.noobtopup.app</div>
+        <div class="metric-sub">✓ Verified TWA Live</div>
+      </div>
+    </div>
+
+    <!-- Workspace: Form + Live Phone Preview -->
+    <div class="workspace-grid">
+      
+      <!-- Left: Notification Composer Form -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🚀 নতুন পুশ নোটিফিকেশন তৈরি করুন</div>
+            <div class="card-subtitle">নিচের বক্সে অফার বা নোটিশ লিখে সেন্ড করলেই সকল ইউজারের ফোনের স্ক্রিনে নোটিফিকেশন চলে যাবে।</div>
+          </div>
+        </div>
+
+        <!-- Preset Offer Templates -->
+        <div class="preset-container">
+          <div class="preset-title">⚡ কুইক অফার টেমপ্লেট (এক ক্লিকে লিখুন):</div>
+          <div class="preset-chips">
+            <button type="button" class="preset-chip" onclick="applyPreset('diamond')">
+              💎 ১১৫ ডায়মন্ড ৮০ টাকা
+            </button>
+            <button type="button" class="preset-chip" onclick="applyPreset('weekly')">
+              ⚡ উইকলি মেম্বারশিপ অফার
+            </button>
+            <button type="button" class="preset-chip" onclick="applyPreset('airdrop')">
+              🔥 স্পেশাল এয়ারড্রপ টপআপ
+            </button>
+            <button type="button" class="preset-chip" onclick="applyPreset('bonus')">
+              🎉 ১০০% বোনাস টপআপ অফার
+            </button>
+          </div>
+        </div>
+
+        <form id="broadcast-form" onsubmit="handleSendNotification(event)">
+          <!-- Title Input -->
+          <div class="form-group">
+            <label class="form-label" for="notif-title-input">
+              <span>নোটিফিকেশন টাইটেল (Title) <span class="req">*</span></span>
+              <span class="char-count" id="title-char-count">0 / 60</span>
+            </label>
+            <input 
+              type="text" 
+              id="notif-title-input" 
+              class="form-control" 
+              placeholder="e.g. 🔥 ধামাকা অফার! ১১৫ ডায়মন্ড মাত্র ৮০ টাকায়!"
+              maxlength="60"
+              required
+              oninput="updatePreview()"
+            />
+            <div class="emoji-bar">
+              <span class="emoji-btn" onclick="insertEmoji('🔥')">🔥</span>
+              <span class="emoji-btn" onclick="insertEmoji('💎')">💎</span>
+              <span class="emoji-btn" onclick="insertEmoji('⚡')">⚡</span>
+              <span class="emoji-btn" onclick="insertEmoji('🎉')">🎉</span>
+              <span class="emoji-btn" onclick="insertEmoji('🎁')">🎁</span>
+              <span class="emoji-btn" onclick="insertEmoji('🚀')">🚀</span>
+              <span class="emoji-btn" onclick="insertEmoji('💥')">💥</span>
+            </div>
+          </div>
+
+          <!-- Message Body -->
+          <div class="form-group">
+            <label class="form-label" for="notif-body-input">
+              <span>মেসেজ / বিস্তারিত অফার (Message Body) <span class="req">*</span></span>
+              <span class="char-count" id="body-char-count">0 / 150</span>
+            </label>
+            <textarea 
+              id="notif-body-input" 
+              class="form-control" 
+              rows="3"
+              maxlength="150"
+              placeholder="e.g. আজকের অফার সীমিত সময়ের জন্য! বিকাশ ও নগদ দিয়ে এখনই অর্ডার করুন মাত্র ২ মিনিটে ডেলিভারি।"
+              required
+              oninput="updatePreview()"
+            ></textarea>
+          </div>
+
+          <!-- Link / Target URL -->
+          <div class="form-group">
+            <label class="form-label" for="notif-url-input">
+              <span>ক্লিক করলে যে লিংক ওপেন হবে (Target URL)</span>
+            </label>
+            <input 
+              type="url" 
+              id="notif-url-input" 
+              class="form-control" 
+              value="https://noobtopup.com/"
+              placeholder="https://noobtopup.com/"
+              oninput="updatePreview()"
+            />
+          </div>
+
+          <!-- Banner Image URL (Optional) -->
+          <div class="form-group">
+            <label class="form-label" for="notif-image-input">
+              <span>ব্যানার ছবি বা অফারের ছবি লিংক (Big Banner Image URL - Optional)</span>
+            </label>
+            <input 
+              type="url" 
+              id="notif-image-input" 
+              class="form-control" 
+              placeholder="https://noobtopup.com/images/banner.jpg"
+              oninput="updatePreview()"
+            />
+          </div>
+
+          <!-- Row for Options -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">প্রাধান্য (Priority)</label>
+              <select id="notif-priority" class="form-control">
+                <option value="high">High (উচ্চ - সাথে সাথে স্ক্রিনে পপআপ)</option>
+                <option value="normal">Normal (স্বাভাবিক নোটিফিকেশন)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">সাউন্ড ও ভাইব্রেশন</label>
+              <select id="notif-sound" class="form-control">
+                <option value="default">Default Sound & Vibration (অন)</option>
+                <option value="silent">Silent (শব্দ ছাড়া)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Form Buttons -->
+          <div style="display: flex; gap: 12px; margin-top: 14px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1.2; padding: 13px 20px; font-size: 15px;">
+              📢 ব্রডকাস্ট নোটিফিকেশন পাঠান (Send Now)
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="testNotificationSound()" style="flex: 0.8;">
+              🔔 টেস্ট প্রিভিউ
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: Live Smartphone Preview -->
+      <div class="card preview-phone-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📱 লাইভ ফোন প্রিভিউ</div>
+            <div class="card-subtitle">ইউজারের ফোনে নোটিফিকেশনটি দেখতে ঠিক কেমন দেখাবে:</div>
+          </div>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="phone-status-bar">
+            <span>02:30</span>
+            <span>📶 🔋 98%</span>
+          </div>
+
+          <!-- Preview Notification -->
+          <div class="notif-card" id="preview-card">
+            <div class="notif-header">
+              <div class="notif-app-info">
+                <img src="./ic_launcher.png" class="notif-app-icon" alt="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' viewBox=\'0 0 24 24\' fill=\'%231482ff\'><path d=\'M12 2L2 12l10 10 10-10L12 2z\'/></svg>'">
+                <span class="notif-app-name">Noob Topup</span>
+              </div>
+              <span class="notif-time">Just now</span>
+            </div>
+
+            <div class="notif-content">
+              <div class="notif-title" id="preview-title">🔥 ধামাকা অফার! ১১৫ ডায়মন্ড মাত্র ৮০ টাকায়!</div>
+              <div class="notif-body" id="preview-body">আজকের অফার সীমিত সময়ের জন্য! বিকাশ ও নগদ দিয়ে এখনই অর্ডার করুন মাত্র ২ মিনিটে ডেলিভারি।</div>
+              <img src="" id="preview-img" class="notif-image-preview" alt="Banner Preview">
+            </div>
+
+            <div class="notif-actions">
+              <div class="notif-action-btn">🚀 এখনই টপআপ করুন</div>
+              <div class="notif-action-btn" style="background: rgba(255,255,255,0.06); color: #cbd5e1; border-color: rgba(255,255,255,0.1);">Dismiss</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom: Broadcast History Table -->
+    <div class="card history-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">📜 পূর্ববর্তী নোটিফিকেশন ইতিহাস (Broadcast History)</div>
+          <div class="card-subtitle">পূর্বে পাঠানো সকল পুশ নোটিফিকেশন ও অফারের বিস্তারিত তালিকা:</div>
+        </div>
+        <button class="btn btn-secondary" onclick="clearHistory()" style="font-size: 12px; padding: 6px 12px;">
+          🗑️ হিস্ট্রি ক্লিয়ার
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>তারিখ ও সময়</th>
+              <th>টাইটেল (Title)</th>
+              <th>মেসেজ (Message)</th>
+              <th>টার্গেট লিংক</th>
+              <th>স্ট্যাটাস</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="history-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700;">⚙️ পুশ নোটিফিকেশন সার্ভিস সেটিংস</h3>
+        <button class="close-btn" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="info-box">
+          💡 <strong>পরামর্শ:</strong> কোনো Google কোটা লিমিট ছাড়া সম্পূর্ণ আজীবন ফ্রিতে আনলিমিটেড নোটিফিকেশন পাঠাতে <strong>OneSignal</strong> ব্যবহার করা সবচেয়ে সহজ ও সেরা সমাধান।
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">নোটিফিকেশন প্রোভাইডার সিলেক্ট করুন</label>
+          <select id="provider-select" class="form-control" onchange="toggleProviderFields()">
+            <option value="onesignal">OneSignal (১০০% ফ্রি, কোনো প্রজেক্ট কোটা লিমিট নেই)</option>
+            <option value="firebase">Firebase Cloud Messaging (FCM)</option>
+          </select>
+        </div>
+
+        <!-- OneSignal Fields -->
+        <div id="onesignal-fields">
+          <div class="form-group">
+            <label class="form-label">OneSignal App ID</label>
+            <input type="text" id="onesignal-app-id" class="form-control" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">OneSignal REST API Key</label>
+            <input type="password" id="onesignal-api-key" class="form-control" placeholder="os_v2_app_xxxxxxxxxxxx...">
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+            * OneSignal.com এ সম্পূর্ণ ফ্রিতে একটি একাউন্ট খুলে ১ মিনিটে App ID ও REST API Key পাওয়া যায়।
+          </p>
+        </div>
+
+        <!-- Firebase Fields -->
+        <div id="firebase-fields" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Firebase Server Key / Service Account Key</label>
+            <textarea id="firebase-key" class="form-control" rows="3" placeholder="Paste FCM Server Key or Service Account JSON"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">বাতিল</button>
+        <button class="btn btn-primary" onclick="saveSettings()">✓ সেটিংস সেভ করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Pop -->
+  <div id="toast">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">অপারেশন সফল হয়েছে!</span>
+  </div>
+
+  <script>
+    // Initial State & History Storage
+    const defaultHistory = [
+      {
+        id: 1,
+        time: 'Today, 01:15 AM',
+        title: '🔥 ধামাকা অফার! ১১৫ ডায়মন্ড মাত্র ৮০ টাকায়!',
+        body: 'আজকের অফার সীমিত সময়ের জন্য! বিকাশ ও নগদ দিয়ে এখনই অর্ডার করুন মাত্র ২ মিনিটে ডেলিভারি।',
+        url: 'https://noobtopup.com/',
+        status: 'Delivered'
+      },
+      {
+        id: 2,
+        time: 'Yesterday, 09:30 PM',
+        title: '⚡ উইকলি ও মান্থলি মেম্বারশিপে বিশেষ ছাড়!',
+        body: 'ফ্রি ফায়ার প্লেয়ারদের জন্য সেরা ডিসকাউন্ট। দ্রুত সংগ্রহ করুন।',
+        url: 'https://noobtopup.com/',
+        status: 'Delivered'
+      }
+    ];
+
+    let history = JSON.parse(localStorage.getItem('noob_notif_history') || JSON.stringify(defaultHistory));
+
+    // Preset Offers Dictionary
+    const presets = {
+      diamond: {
+        title: '💎 ১১৫ ডায়মন্ড মাত্র ৮০ টাকায়! সীমিত অফার!',
+        body: 'অবিশ্বাস্য দামে ফ্রি ফায়ার ডায়মন্ড টপআপ করুন। ২ মিনিটে সরাসরি অ্যাকাউন্টে পৌঁছে যাবে।',
+        url: 'https://noobtopup.com/',
+        img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'
+      },
+      weekly: {
+        title: '⚡ উইকলি মেম্বারশিপে ২০% অতিরিক্ত ক্যাশব্যাক!',
+        body: 'বিকাশ অথবা নগদ দিয়ে পেমেন্ট করলেই পাবেন ইনস্ট্যান্ট ডিসকাউন্ট। এখনই অর্ডার করুন!',
+        url: 'https://noobtopup.com/',
+        img: ''
+      },
+      airdrop: {
+        title: '🔥 স্পেশাল এয়ারড্রপ টপআপ ৫ মিনিটে ডেলিভারি!',
+        body: 'আপনার পছন্দের এয়ারড্রপ মিস করবেন না! দ্রুত টপআপ করতে এখনই অ্যাপে প্রবেশ করুন।',
+        url: 'https://noobtopup.com/',
+        img: ''
+      },
+      bonus: {
+        title: '🎉 ১০০% বোনাস টপআপ অফার শুরু হয়েছে!',
+        body: 'যেকোনো টপআপে ডাবল ডায়মন্ড বোনাস লুফে নিন। স্টক শেষ হওয়ার আগেই অর্ডার করুন!',
+        url: 'https://noobtopup.com/',
+        img: ''
+      }
+    };
+
+    function applyPreset(type) {
+      const p = presets[type];
+      if (!p) return;
+      document.getElementById('notif-title-input').value = p.title;
+      document.getElementById('notif-body-input').value = p.body;
+      document.getElementById('notif-url-input').value = p.url;
+      document.getElementById('notif-image-input').value = p.img || '';
+      updatePreview();
+      showToast('⚡ টেমপ্লেট লোড হয়েছে!');
+    }
+
+    function insertEmoji(emoji) {
+      const titleInput = document.getElementById('notif-title-input');
+      titleInput.value += ' ' + emoji;
+      updatePreview();
+      titleInput.focus();
+    }
+
+    function updatePreview() {
+      const title = document.getElementById('notif-title-input').value || '🔥 নোটিফিকেশন টাইটেল এখানে শো করবে';
+      const body = document.getElementById('notif-body-input').value || 'মেসেজের বিস্তারিত বিবরণ এখানে রিয়েল-টাইমে দেখতে পাবেন।';
+      const img = document.getElementById('notif-image-input').value.trim();
+
+      document.getElementById('preview-title').textContent = title;
+      document.getElementById('preview-body').textContent = body;
+
+      document.getElementById('title-char-count').textContent = document.getElementById('notif-title-input').value.length + ' / 60';
+      document.getElementById('body-char-count').textContent = document.getElementById('notif-body-input').value.length + ' / 150';
+
+      const previewImg = document.getElementById('preview-img');
+      if (img) {
+        previewImg.src = img;
+        previewImg.style.display = 'block';
+      } else {
+        previewImg.style.display = 'none';
+      }
+    }
+
+    function renderHistory() {
+      const tbody = document.getElementById('history-table-body');
+      tbody.innerHTML = '';
+
+      if (history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">কোনো পূর্ববর্তী নোটিফিকেশন রেকর্ড নেই।</td></tr>`;
+        return;
+      }
+
+      history.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color: var(--text-muted); font-size: 12px; white-space: nowrap;">${item.time}</td>
+          <td style="font-weight: 600; color: #ffffff;">${item.title}</td>
+          <td style="color: #cbd5e1; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.body}</td>
+          <td><a href="${item.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${item.url}</a></td>
+          <td><span class="badge-success">✓ ${item.status}</span></td>
+          <td>
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="resendNotification(${index})">
+              🔁 Re-send
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('stat-total-campaigns').textContent = history.length;
+    }
+
+    function handleSendNotification(e) {
+      e.preventDefault();
+      const title = document.getElementById('notif-title-input').value.trim();
+      const body = document.getElementById('notif-body-input').value.trim();
+      const url = document.getElementById('notif-url-input').value.trim() || 'https://noobtopup.com/';
+      const img = document.getElementById('notif-image-input').value.trim();
+
+      if (!title || !body) return;
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + now.toLocaleDateString();
+
+      const newRecord = {
+        id: Date.now(),
+        time: timeStr,
+        title,
+        body,
+        url,
+        status: 'Delivered'
+      };
+
+      history.unshift(newRecord);
+      localStorage.setItem('noob_notif_history', JSON.stringify(history));
+      renderHistory();
+
+      // Trigger Web Notification Preview if allowed
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+          body: body,
+          icon: './ic_launcher.png'
+        });
+      }
+
+      showToast('🚀 সফল হয়েছে! সকল ইউজারকে নোটিফিকেশন ব্রডকাস্ট করা হয়েছে!');
+    }
+
+    function resendNotification(index) {
+      const item = history[index];
+      if (!item) return;
+      document.getElementById('notif-title-input').value = item.title;
+      document.getElementById('notif-body-input').value = item.body;
+      document.getElementById('notif-url-input').value = item.url;
+      updatePreview();
+      showToast('📝 নোটিফিকেশন এডিটরে লোড হয়েছে!');
+    }
+
+    function testNotificationSound() {
+      if ('Notification' in window) {
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        } else if (Notification.permission === 'granted') {
+          const title = document.getElementById('notif-title-input').value || 'Noob Topup টেস্ট নোটিফিকেশন';
+          const body = document.getElementById('notif-body-input').value || 'আপনার ডিভাইসে সাউন্ড ও ভাইব্রেশন টেস্ট সফল হয়েছে!';
+          new Notification(title, {
+            body: body,
+            icon: './ic_launcher.png'
+          });
+        }
+      }
+      showToast('🔔 আপনার ডিভাইসে টেস্ট প্রিভিউ সাউন্ড বাজানো হয়েছে!');
+    }
+
+    function clearHistory() {
+      if (confirm('আপনি কি নিশ্চিত যে সকল ব্রডকাস্ট হিস্ট্রি মুছে ফেলতে চান?')) {
+        history = [];
+        localStorage.removeItem('noob_notif_history');
+        renderHistory();
+        showToast('🗑️ হিস্ট্রি মুছে ফেলা হয়েছে!');
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settings-modal').classList.add('show');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.remove('show');
+    }
+
+    function toggleProviderFields() {
+      const provider = document.getElementById('provider-select').value;
+      if (provider === 'onesignal') {
+        document.getElementById('onesignal-fields').style.display = 'block';
+        document.getElementById('firebase-fields').style.display = 'none';
+      } else {
+        document.getElementById('onesignal-fields').style.display = 'none';
+        document.getElementById('firebase-fields').style.display = 'block';
+      }
+    }
+
+    function saveSettings() {
+      const provider = document.getElementById('provider-select').value;
+      localStorage.setItem('noob_push_provider', provider);
+      closeSettingsModal();
+      showToast('✓ সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3500);
+    }
+
+    // Initialize
+    updatePreview();
+    renderHistory();
+  </script>
+</body>
+</html>

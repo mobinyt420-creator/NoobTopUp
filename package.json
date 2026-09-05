@@ -1,0 +1,9 @@
+{
+  "name": "noobtopup-admin",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Push Notification Admin Console for Noob Topup",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
