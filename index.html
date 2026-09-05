@@ -1257,14 +1257,6 @@
       const fcmKey = localStorage.getItem('noob_fcm_server_key');
 
       if (provider === 'firebase' || !provider) {
-        if (!fcmKey) {
-          showToast('⚠️ আগে সেটিংস থেকে Firebase Server Key সেভ করুন।');
-          openSettingsModal();
-          document.getElementById('provider-select').value = 'firebase';
-          toggleProviderFields();
-          return;
-        }
-
         showToast('⏳ ফায়ারবেস ক্লাউড মেসেজিং (FCM)-এ পাঠানো হচ্ছে...');
         fetch('/api/send-fcm', {
           method: 'POST',
@@ -1276,13 +1268,12 @@
             body,
             url,
             image: img,
-            serviceAccount: fcmKey,
-            serverKey: fcmKey
+            serviceAccount: fcmKey || undefined
           })
         })
         .then(res => res.json())
         .then(data => {
-          if (data.message_id || data.success === 1) {
+          if (data.name || data.message_id || data.success === 1) {
             showToast('🚀 সফল! ফায়ারবেস FCM-এর মাধ্যমে সকল ইউজারের ফোনে অফার পৌঁছে গেছে!');
           } else if (data.error) {
             showToast('❌ ফায়ারবেস এরর: ' + (typeof data.error === 'object' ? JSON.stringify(data.error) : data.error));
@@ -1368,6 +1359,8 @@
         renderHistory();
         showToast('🗑️ হিস্ট্রি মুছে ফেলা হয়েছে!');
       }
+    }
+
     function handleJsonFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;

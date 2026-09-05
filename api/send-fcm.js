@@ -1,14 +1,7 @@
 import crypto from 'crypto';
 
-/**
- * Generates an OAuth2 access token for Google Cloud using Service Account credentials.
- */
 async function getGoogleAccessToken(clientEmail, privateKey) {
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT'
-  };
-
+  const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
   const claim = {
     iss: clientEmail,
@@ -58,107 +51,75 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { title, body, url, image, serviceAccount, serverKey } = req.body || {};
+    const { title, body, url, image, serviceAccount } = req.body || {};
 
     if (!title || !body) {
       return res.status(400).json({ error: 'Title and Body are required' });
     }
 
-    // 1. Modern Firebase Cloud Messaging HTTP v1 using Service Account JSON
     let sa = null;
     if (serviceAccount) {
       if (typeof serviceAccount === 'string') {
-        try {
-          sa = JSON.parse(serviceAccount);
-        } catch (e) {
-          sa = null;
-        }
+        try { sa = JSON.parse(serviceAccount); } catch (e) { sa = null; }
       } else if (typeof serviceAccount === 'object') {
         sa = serviceAccount;
       }
     }
 
-    if (sa && sa.client_email && sa.private_key) {
-      const projectId = sa.project_id || 'noob-topup-f8ee7';
-      const accessToken = await getGoogleAccessToken(sa.client_email, sa.private_key);
-
-      const v1Payload = {
-        message: {
-          topic: 'all_users',
-          notification: {
-            title: title,
-            body: body
-          },
-          data: {
-            title: title,
-            body: body,
-            url: url || 'https://noobtopup.com/'
-          },
-          android: {
-            priority: 'high',
-            notification: {
-              sound: 'default'
-            }
-          }
-        }
-      };
-
-      if (image) {
-        v1Payload.message.notification.image = image;
-        v1Payload.message.data.image = image;
+    if (!sa && process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      } catch (e) {
+        sa = null;
       }
-
-      const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
-        },
-        body: JSON.stringify(v1Payload)
-      });
-
-      const result = await fcmRes.json();
-      return res.status(200).json(result);
     }
 
-    // 2. Legacy Server Key Fallback
-    if (serverKey) {
-      const payload = {
-        to: '/topics/all_users',
-        priority: 'high',
+    if (!sa || !sa.client_email || !sa.private_key) {
+      return res.status(400).json({ 
+        error: 'Firebase Service Account credentials required. Upload your JSON file in Settings.' 
+      });
+    }
+
+    const projectId = sa.project_id || 'noob-topup-f8ee7';
+    const accessToken = await getGoogleAccessToken(sa.client_email, sa.private_key);
+
+    const v1Payload = {
+      message: {
+        topic: 'all_users',
         notification: {
           title: title,
-          body: body,
-          sound: 'default'
+          body: body
         },
         data: {
           title: title,
           body: body,
           url: url || 'https://noobtopup.com/'
-        }
-      };
-
-      if (image) {
-        payload.notification.image = image;
-        payload.data.image = image;
-      }
-
-      const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=' + serverKey.trim()
         },
-        body: JSON.stringify(payload)
-      });
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default'
+          }
+        }
+      }
+    };
 
-      const result = await fcmResponse.json();
-      return res.status(200).json(result);
+    if (image) {
+      v1Payload.message.notification.image = image;
+      v1Payload.message.data.image = image;
     }
 
-    return res.status(400).json({ 
-      error: 'Firebase Service Account JSON is required. Get it from Firebase Console -> Project Settings -> Service accounts -> Generate new private key.' 
+    const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(v1Payload)
     });
+
+    const result = await fcmRes.json();
+    return res.status(200).json(result);
 
   } catch (error) {
     return res.status(500).json({ error: error.message });

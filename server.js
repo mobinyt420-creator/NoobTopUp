@@ -20,6 +20,18 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+function getLocalServiceAccount() {
+  const saPath = path.join(__dirname, 'service-account.json');
+  if (fs.existsSync(saPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(saPath, 'utf8'));
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
 async function getGoogleAccessToken(clientEmail, privateKey) {
   const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -58,7 +70,6 @@ async function getGoogleAccessToken(clientEmail, privateKey) {
 }
 
 const server = http.createServer(async (req, res) => {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -75,7 +86,7 @@ const server = http.createServer(async (req, res) => {
     req.on('data', chunk => { bodyData += chunk; });
     req.on('end', async () => {
       try {
-        const { title, body, url, image, serviceAccount, serverKey } = JSON.parse(bodyData || '{}');
+        const { title, body, url, image, serviceAccount } = JSON.parse(bodyData || '{}');
         if (!title || !body) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Title and Body are required' }));
@@ -91,69 +102,46 @@ const server = http.createServer(async (req, res) => {
           }
         }
 
-        if (sa && sa.client_email && sa.private_key) {
-          const projectId = sa.project_id || 'noob-topup-f8ee7';
-          const accessToken = await getGoogleAccessToken(sa.client_email, sa.private_key);
+        if (!sa || !sa.client_email) {
+          sa = getLocalServiceAccount();
+        }
 
-          const v1Payload = {
-            message: {
-              topic: 'all_users',
-              notification: { title, body },
-              data: { title, body, url: url || 'https://noobtopup.com/' },
-              android: { priority: 'high', notification: { sound: 'default' } }
-            }
-          };
-
-          if (image) {
-            v1Payload.message.notification.image = image;
-            v1Payload.message.data.image = image;
-          }
-
-          const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${accessToken}`
-            },
-            body: JSON.stringify(v1Payload)
-          });
-
-          const result = await fcmRes.json();
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(result));
+        if (!sa || !sa.client_email || !sa.private_key) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Firebase Service Account credentials required.' }));
           return;
         }
 
-        if (serverKey) {
-          const payload = {
-            to: '/topics/all_users',
-            priority: 'high',
-            notification: { title, body, sound: 'default' },
-            data: { title, body, url: url || 'https://noobtopup.com/' }
-          };
+        const projectId = sa.project_id || 'noob-topup-f8ee7';
+        const accessToken = await getGoogleAccessToken(sa.client_email, sa.private_key);
 
-          if (image) {
-            payload.notification.image = image;
-            payload.data.image = image;
+        const v1Payload = {
+          message: {
+            topic: 'all_users',
+            notification: { title, body },
+            data: { title, body, url: url || 'https://noobtopup.com/' },
+            android: { priority: 'high', notification: { sound: 'default' } }
           }
+        };
 
-          const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'key=' + serverKey.trim()
-            },
-            body: JSON.stringify(payload)
-          });
-
-          const result = await fcmResponse.json();
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(result));
-          return;
+        if (image) {
+          v1Payload.message.notification.image = image;
+          v1Payload.message.data.image = image;
         }
 
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Firebase Service Account JSON is required.' }));
+        const fcmRes = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(v1Payload)
+        });
+
+        const result = await fcmRes.json();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message }));
