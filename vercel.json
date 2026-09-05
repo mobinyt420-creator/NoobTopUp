@@ -15,6 +15,14 @@
       "dest": "/privacy-policy.html"
     },
     {
+      "src": "/delete-account",
+      "dest": "/delete-account.html"
+    },
+    {
+      "src": "/delete-account.html",
+      "dest": "/delete-account.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
