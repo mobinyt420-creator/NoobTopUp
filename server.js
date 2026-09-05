@@ -19,7 +19,77 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
+  // Handle FCM Dispatch API
+  if (req.url.startsWith('/api/send-fcm') && req.method === 'POST') {
+    let bodyData = '';
+    req.on('data', chunk => { bodyData += chunk; });
+    req.on('end', async () => {
+      try {
+        const { title, body, url, image, serverKey } = JSON.parse(bodyData || '{}');
+        if (!title || !body) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Title and Body are required' }));
+          return;
+        }
+
+        if (!serverKey) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Firebase Server Key is required' }));
+          return;
+        }
+
+        const payload = {
+          to: '/topics/all_users',
+          priority: 'high',
+          notification: {
+            title: title,
+            body: body,
+            sound: 'default'
+          },
+          data: {
+            title: title,
+            body: body,
+            url: url || 'https://noobtopup.com/'
+          }
+        };
+
+        if (image) {
+          payload.notification.image = image;
+          payload.data.image = image;
+        }
+
+        const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'key=' + serverKey.trim()
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await fcmResponse.json();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   let reqPath = decodeURI(req.url.split('?')[0]);
   if (reqPath === '/') reqPath = '/index.html';
 
@@ -30,7 +100,7 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (err, content) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        res.writeHead(404, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('404 Not Found: ' + reqPath);
       } else {
         res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -39,8 +109,7 @@ const server = http.createServer((req, res) => {
     } else {
       res.writeHead(200, {
         'Content-Type': contentType,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Access-Control-Allow-Origin': '*'
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       });
       res.end(content);
     }

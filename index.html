@@ -1050,19 +1050,35 @@
 
       <div class="modal-body">
         <div class="info-box">
-          💡 <strong>পরামর্শ:</strong> কোনো Google কোটা লিমিট ছাড়া সম্পূর্ণ আজীবন ফ্রিতে আনলিমিটেড নোটিফিকেশন পাঠাতে <strong>OneSignal</strong> ব্যবহার করা সবচেয়ে সহজ ও সেরা সমাধান।
+          🔥 <strong>অফিসিয়াল ফায়ারবেস সিস্টেম:</strong> আপনার অ্যান্ড্রয়েড অ্যাপটি <code>noob-topup-f8ee7</code> প্রজেক্টের <code>all_users</code> টপিকে সরাসরি কানেক্টেড। নিচে Server Key দিয়ে সরাসরি এডমিন প্যানেল থেকে ব্রডকাস্ট নোটিফিকেশন পাঠাতে পারবেন।
         </div>
 
         <div class="form-group">
           <label class="form-label">নোটিফিকেশন প্রোভাইডার সিলেক্ট করুন</label>
           <select id="provider-select" class="form-control" onchange="toggleProviderFields()">
-            <option value="onesignal">OneSignal (১০০% ফ্রি, কোনো প্রজেক্ট কোটা লিমিট নেই)</option>
-            <option value="firebase">Firebase Cloud Messaging (FCM)</option>
+            <option value="firebase">🔥 Firebase Cloud Messaging (FCM) - (অফিসিয়াল ও সুপারিশকৃত)</option>
+            <option value="onesignal">⚡ OneSignal (অল্টারনেট)</option>
           </select>
         </div>
 
+        <!-- Firebase Fields -->
+        <div id="firebase-fields">
+          <div class="form-group">
+            <label class="form-label">
+              <span>Firebase FCM Server Key <span class="req">*</span></span>
+            </label>
+            <textarea id="firebase-key" class="form-control" rows="3" placeholder="AIzaSy... অথবা AAAA..."></textarea>
+          </div>
+          <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+            💡 <strong>সার্ভার কি (Server key) যেভাবে পাবেন (মাত্র ২০ সেকেন্ড):</strong><br>
+            ১. <a href="https://console.firebase.google.com/project/noob-topup-f8ee7/settings/cloudmessaging" target="_blank" style="color: #60a5fa;">Firebase Cloud Messaging Settings ↗</a> এ যান।<br>
+            ২. "Cloud Messaging API (Legacy)" এর পাশে থাকা <strong>Server key</strong> কপি করুন (যদি Disabled থাকে, ডানপাশের ৩ ডটে ক্লিক করে Enable Cloud Messaging API চাপুন)।<br>
+            ৩. উপরের বক্সে পেস্ট করে "✓ সেটিংস সেভ করুন"-এ চাপ দিন। ব্যাস, সারা জীবনের জন্য কানেক্ট হয়ে যাবে!
+          </div>
+        </div>
+
         <!-- OneSignal Fields -->
-        <div id="onesignal-fields">
+        <div id="onesignal-fields" style="display: none;">
           <div class="form-group">
             <label class="form-label">OneSignal App ID</label>
             <input type="text" id="onesignal-app-id" class="form-control" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
@@ -1070,17 +1086,6 @@
           <div class="form-group">
             <label class="form-label">OneSignal REST API Key</label>
             <input type="password" id="onesignal-api-key" class="form-control" placeholder="os_v2_app_xxxxxxxxxxxx...">
-          </div>
-          <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-            * OneSignal.com এ সম্পূর্ণ ফ্রিতে একটি একাউন্ট খুলে ১ মিনিটে App ID ও REST API Key পাওয়া যায়।
-          </p>
-        </div>
-
-        <!-- Firebase Fields -->
-        <div id="firebase-fields" style="display: none;">
-          <div class="form-group">
-            <label class="form-label">Firebase Server Key / Service Account Key</label>
-            <textarea id="firebase-key" class="form-control" rows="3" placeholder="Paste FCM Server Key or Service Account JSON"></textarea>
           </div>
         </div>
       </div>
@@ -1241,6 +1246,48 @@
       localStorage.setItem('noob_notif_history', JSON.stringify(history));
       renderHistory();
 
+      const provider = localStorage.getItem('noob_push_provider') || 'firebase';
+      const fcmKey = localStorage.getItem('noob_fcm_server_key');
+
+      if (provider === 'firebase' || !provider) {
+        if (!fcmKey) {
+          showToast('⚠️ আগে সেটিংস থেকে Firebase Server Key সেভ করুন।');
+          openSettingsModal();
+          document.getElementById('provider-select').value = 'firebase';
+          toggleProviderFields();
+          return;
+        }
+
+        showToast('⏳ ফায়ারবেস ক্লাউড মেসেজিং (FCM)-এ পাঠানো হচ্ছে...');
+        fetch('/api/send-fcm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title,
+            body,
+            url,
+            image: img,
+            serverKey: fcmKey
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message_id || data.success === 1) {
+            showToast('🚀 সফল! ফায়ারবেস FCM-এর মাধ্যমে সকল ইউজারের ফোনে অফার পৌঁছে গেছে!');
+          } else if (data.error) {
+            showToast('❌ ফায়ারবেস এরর: ' + (typeof data.error === 'object' ? JSON.stringify(data.error) : data.error));
+          } else {
+            showToast('⚠️ রেসপন্স: ' + JSON.stringify(data));
+          }
+        })
+        .catch(err => {
+          showToast('❌ এরর: ' + err.message);
+        });
+        return;
+      }
+
       // Check if OneSignal API Key & App ID are configured
       const appId = localStorage.getItem('noob_onesignal_app_id');
       const apiKey = localStorage.getItem('noob_onesignal_api_key');
@@ -1276,14 +1323,7 @@
           showToast('❌ এরর: ' + err.message);
         });
       } else {
-        // Trigger Web Notification Preview if allowed
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification(title, {
-            body: body,
-            icon: './ic_launcher.png'
-          });
-        }
-        showToast('💡 নোটিশ: আসল ফোনে পৌঁছানোর জন্য সেটিংস থেকে OneSignal App ID ও API Key দিন।');
+        showToast('💡 নোটিশ: সেটিংস থেকে Firebase Server Key অথবা OneSignal কী দিন।');
       }
     }
 
@@ -1323,10 +1363,18 @@
     }
 
     function openSettingsModal() {
+      const provider = localStorage.getItem('noob_push_provider') || 'firebase';
+      document.getElementById('provider-select').value = provider;
+      toggleProviderFields();
+
+      const fcmKey = localStorage.getItem('noob_fcm_server_key') || '';
+      document.getElementById('firebase-key').value = fcmKey;
+
       const appId = localStorage.getItem('noob_onesignal_app_id') || '';
       const apiKey = localStorage.getItem('noob_onesignal_api_key') || '';
       document.getElementById('onesignal-app-id').value = appId;
       document.getElementById('onesignal-api-key').value = apiKey;
+
       document.getElementById('settings-modal').classList.add('show');
     }
 
@@ -1347,10 +1395,12 @@
 
     function saveSettings() {
       const provider = document.getElementById('provider-select').value;
+      const fcmKey = document.getElementById('firebase-key').value.trim();
       const appId = document.getElementById('onesignal-app-id').value.trim();
       const apiKey = document.getElementById('onesignal-api-key').value.trim();
 
       localStorage.setItem('noob_push_provider', provider);
+      if (fcmKey) localStorage.setItem('noob_fcm_server_key', fcmKey);
       if (appId) localStorage.setItem('noob_onesignal_app_id', appId);
       if (apiKey) localStorage.setItem('noob_onesignal_api_key', apiKey);
 
