@@ -126,7 +126,16 @@ const server = http.createServer(async (req, res) => {
             topic: 'all_users',
             notification: { title, body },
             data: { title, body, url: url || 'https://noobtopup.com/' },
-            android: { priority: 'high', notification: { sound: 'default' } }
+            android: {
+              priority: 'high',
+              notification: {
+                channel_id: 'noob_topup_alerts',
+                sound: 'default',
+                default_sound: true,
+                default_vibrate_timings: true,
+                notification_priority: 'PRIORITY_HIGH'
+              }
+            }
           }
         };
 

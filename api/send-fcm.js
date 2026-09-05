@@ -112,7 +112,11 @@ export default async function handler(req, res) {
         android: {
           priority: 'high',
           notification: {
-            sound: 'default'
+            channel_id: 'noob_topup_alerts',
+            sound: 'default',
+            default_sound: true,
+            default_vibrate_timings: true,
+            notification_priority: 'PRIORITY_HIGH'
           }
         }
       }
