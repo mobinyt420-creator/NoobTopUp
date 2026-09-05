@@ -1207,15 +1207,50 @@
       localStorage.setItem('noob_notif_history', JSON.stringify(history));
       renderHistory();
 
-      // Trigger Web Notification Preview if allowed
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(title, {
-          body: body,
-          icon: './ic_launcher.png'
-        });
-      }
+      // Check if OneSignal API Key & App ID are configured
+      const appId = localStorage.getItem('noob_onesignal_app_id');
+      const apiKey = localStorage.getItem('noob_onesignal_api_key');
 
-      showToast('🚀 সফল হয়েছে! সকল ইউজারকে নোটিফিকেশন ব্রডকাস্ট করা হয়েছে!');
+      if (appId && apiKey) {
+        showToast('⏳ OneSignal সার্ভারে পাঠানো হচ্ছে...');
+        const payload = {
+          app_id: appId,
+          included_segments: ["Total Subscriptions"],
+          headings: { en: title },
+          contents: { en: body },
+          url: url || "https://noobtopup.com/"
+        };
+        if (img) payload.big_picture = img;
+
+        fetch('https://onesignal.com/api/v1/notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Basic ' + apiKey
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.id) {
+            showToast('🚀 সফল! ' + (data.recipients || 0) + ' টি ফোনে নোটিফিকেশন পৌঁছেছে!');
+          } else {
+            showToast('⚠️ রেসপন্স: ' + JSON.stringify(data.errors || data));
+          }
+        })
+        .catch(err => {
+          showToast('❌ এরর: ' + err.message);
+        });
+      } else {
+        // Trigger Web Notification Preview if allowed
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, {
+            body: body,
+            icon: './ic_launcher.png'
+          });
+        }
+        showToast('💡 নোটিশ: আসল ফোনে পৌঁছানোর জন্য সেটিংস থেকে OneSignal App ID ও API Key দিন।');
+      }
     }
 
     function resendNotification(index) {
@@ -1254,6 +1289,10 @@
     }
 
     function openSettingsModal() {
+      const appId = localStorage.getItem('noob_onesignal_app_id') || '';
+      const apiKey = localStorage.getItem('noob_onesignal_api_key') || '';
+      document.getElementById('onesignal-app-id').value = appId;
+      document.getElementById('onesignal-api-key').value = apiKey;
       document.getElementById('settings-modal').classList.add('show');
     }
 
@@ -1274,7 +1313,13 @@
 
     function saveSettings() {
       const provider = document.getElementById('provider-select').value;
+      const appId = document.getElementById('onesignal-app-id').value.trim();
+      const apiKey = document.getElementById('onesignal-api-key').value.trim();
+
       localStorage.setItem('noob_push_provider', provider);
+      if (appId) localStorage.setItem('noob_onesignal_app_id', appId);
+      if (apiKey) localStorage.setItem('noob_onesignal_api_key', apiKey);
+
       closeSettingsModal();
       showToast('✓ সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
     }
