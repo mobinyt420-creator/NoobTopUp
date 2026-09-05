@@ -3,6 +3,18 @@
   "name": "noobtopup-admin",
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/privacy-policy",
+      "dest": "/privacy-policy.html"
+    },
+    {
+      "src": "/privacy-policy.html",
+      "dest": "/privacy-policy.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
