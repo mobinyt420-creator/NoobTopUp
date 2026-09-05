@@ -931,21 +931,37 @@
           </div>
 
           <!-- Official Firebase Project Direct Dispatch Card -->
-          <div style="margin-top: 16px; padding: 14px 16px; border-radius: var(--radius-md); background: rgba(255, 160, 0, 0.08); border: 1px solid rgba(255, 160, 0, 0.25);">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-              <span style="font-size: 13px; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+          <div style="margin-top: 16px; padding: 16px; border-radius: var(--radius-md); background: rgba(255, 160, 0, 0.08); border: 1px solid rgba(255, 160, 0, 0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 14px; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
                 🔥 Firebase Project: <code style="color: #ffffff; background: #1e293b; padding: 2px 6px; border-radius: 4px;">noob-topup-f8ee7</code>
               </span>
               <span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 99px; font-weight: 600;">
                 ✓ Connected
               </span>
             </div>
-            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px;">
-              গুগল অফিসিয়াল ফায়ারবেস ক্লাউড মেসেজিং কনসোল থেকে সরাসরি সকল ইউজারের ফোনে অফার বা নোটিফিকেশন পাঠাতে নিচের বাটনে চাপ দিন (টার্গেট টপিক: <code style="color: #60a5fa;">all_users</code>):
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+              গুগল অফিসিয়াল ফায়ারবেস কনসোল থেকে সকল ইউজারের ফোনে অফার বা নোটিফিকেশন পাঠাতে নিচের বাটনে চাপ দিন (টার্গেট টপিক: <code style="color: #60a5fa; font-weight: bold;">all_users</code>):
             </p>
-            <a href="https://console.firebase.google.com/project/noob-topup-f8ee7/notification/compose" target="_blank" class="btn btn-secondary" style="width: 100%; color: #fbbf24; border-color: rgba(255, 160, 0, 0.4); text-align: center; text-decoration: none;">
-              🚀 Open Google Firebase Cloud Messaging ↗
+            
+            <a href="https://console.firebase.google.com/project/noob-topup-f8ee7/notification/compose" target="_blank" class="btn btn-primary" style="width: 100%; text-align: center; text-decoration: none; margin-bottom: 10px; font-weight: 700;">
+              🚀 Open Google Firebase Notification Composer ↗
             </a>
+
+            <!-- Permission / Account Switch Helper -->
+            <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 160, 0, 0.25); border-radius: 8px; padding: 12px; font-size: 12px; color: #e2e8f0; line-height: 1.5;">
+              <div style="color: #fbbf24; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                ⚠️ "The project does not exist or you do not have permission" এরর আসলে করণীয়:
+              </div>
+              <div>
+                আপনার ব্রাউজারে একাধিক গুগল একাউন্ট লগইন করা থাকলে এই এররটি আসে। ফায়ারবেস পেজে গিয়ে উপরের ডানদিকের <b>Google Profile Avatar / Icon</b>-এ ক্লিক করে যে জিমেইল দিয়ে ফায়ারবেস প্রজেক্টটি তৈরি করেছেন সেটি নির্বাচন করুন অথবা নিচের ডিরেক্ট লিংকগুলো ট্রাই করুন:
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                <a href="https://console.firebase.google.com/u/0/project/noob-topup-f8ee7/notification/compose" target="_blank" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; text-decoration: none;">Account 1 (Default)</a>
+                <a href="https://console.firebase.google.com/u/1/project/noob-topup-f8ee7/notification/compose" target="_blank" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; text-decoration: none;">Account 2</a>
+                <a href="https://console.firebase.google.com/u/2/project/noob-topup-f8ee7/notification/compose" target="_blank" class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px; text-decoration: none;">Account 3</a>
+              </div>
+            </div>
           </div>
         </form>
       </div>
